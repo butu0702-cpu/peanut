@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  name        String
+  description String
+  price       Int
+  stock       Int         @default(30)
+  season      String      @default("現貨供應")
+  category    String
+  image       String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @unique
+  lineId    String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id           String           @id @default(cuid())
+  code         String           @unique
+  userId       String?
+  customerName String
+  phone        String
+  status       String           @default("待出貨")
+  shipping     String
+  total        Int
+  freight      Int
+  note         String?
+  createdAt    DateTime         @default(now())
+  user         User?            @relation(fields: [userId], references: [id])
+  recipients   OrderRecipient[]
+  items        OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  jin       Int
+  price     Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model OrderRecipient {
+  id       String @id @default(cuid())
+  orderId  String
+  name     String
+  phone    String
+  address  String
+  quantity Int
+  greeting String?
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model HarvestSubscription {
+  id        String   @id @default(cuid())
+  name      String?
+  contact   String
+  channel   String   @default("SMS")
+  product   String
+  createdAt DateTime @default(now())
+}
